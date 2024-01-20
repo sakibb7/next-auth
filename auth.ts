@@ -7,14 +7,14 @@ import { getUserById } from "@/data/user"
 import { UserRole } from "@prisma/client"
 
 
-declare module "next-auth" {
-  interface Session {
-    user: {
-      id:string;
-      role:{}
-    }
-  }
-}
+// declare module "next-auth" {
+//   interface Session {
+//     user: {
+//       id:string;
+//       role:{}
+//     }
+//   }
+// }
 
 
 export const {
@@ -33,32 +33,35 @@ export const {
     async linkAccount({user}) {
       await db.user.update({
         where: {id:user.id},
-        data: {emailVerified: new Date()}
+        data: {emailVerified:new Date()}
       })
     }
   },
 
   callbacks: {
+    async signIn({user,account}) {
 
-    async signIn({user}) {
+      // console.log(user,account)
+
+      //allow OAuth without email verification
+      if(account?.provider !== "credentials") return true
+
       const existingUser = await getUserById(user.id)
+      //prevent sign in without email verification
 
-      if(!existingUser || !existingUser.emailVerified) {
-        return false
-      }
+      if(!existingUser?.emailVerified) return false
 
       return true
     },
 
     async session({token, session}) {
       
-
       if(token.sub && session.user) {
         session.user.id = token.sub
       }
 
       if (token.role && session.user) {
-        session.user.role = token.role 
+        session.user.role = token.role as UserRole
       }
 
       return session
