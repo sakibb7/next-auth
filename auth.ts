@@ -58,9 +58,6 @@ export const {
 
         if(!twoFactorConfirmation) return false
 
-        console.log({
-          twoFactorConfirmation
-        })
         
         await db.twoFactorConfirmation.delete({
           where: {id:twoFactorConfirmation.id}
